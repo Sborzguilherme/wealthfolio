@@ -4,7 +4,7 @@ use crate::context::ServiceContext;
 use log::{debug, error};
 use tauri::State;
 
-use wealthfolio_core::accounts::{Account, AccountUpdate, NewAccount};
+use wealthfolio_core::accounts::{is_spending_account_type, Account, AccountUpdate, NewAccount};
 
 #[tauri::command]
 pub async fn get_accounts(
@@ -33,14 +33,26 @@ pub async fn create_account(
 ) -> Result<Account, String> {
     debug!("Adding new account...");
     // Domain events handle recalculation automatically
-    state
+    let created = state
         .account_service()
         .create_account(account)
         .await
         .map_err(|e| {
             error!("Failed to add new account: {}", e);
             format!("Failed to add new account: {}", e)
-        })
+        })?;
+
+    if is_spending_account_type(&created.account_type) {
+        if let Err(e) = state
+            .spending_settings_service()
+            .auto_include_account(&created.id)
+            .await
+        {
+            error!("Failed to auto-include account in spending settings: {}", e);
+        }
+    }
+
+    Ok(created)
 }
 
 #[tauri::command]
