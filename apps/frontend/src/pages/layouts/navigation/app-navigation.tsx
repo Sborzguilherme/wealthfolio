@@ -1,4 +1,5 @@
 import { getDynamicNavItems, subscribeToNavigationUpdates } from "@/addons/addons-runtime-context";
+import { useSpendingSettings } from "@/features/spending/hooks/use-spending-settings";
 import { Icons } from "@wealthfolio/ui/components/ui/icons";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
@@ -56,6 +57,13 @@ function buildStaticNavigation(t: TFunction): NavigationProps {
         label: t("common:nav.label_activities"),
       },
       {
+        icon: <Icons.Wallet className="size-6" />,
+        title: t("common:spending"),
+        href: "/spending/insights",
+        keywords: ["spending", "expenses", "budget", "categories"],
+        label: t("common:nav.label_spending"),
+      },
+      {
         icon: <Icons.Goals className="size-6" />,
         title: t("common:goals"),
         href: "/goals",
@@ -106,9 +114,11 @@ export function useNavigation() {
     };
   }, []);
 
-  // Spending lives entirely on the dashboard tab (and its deep-linked pages);
-  // no top-level nav entry. Combine static navigation items with addons.
-  const primary = [...staticNavigation.primary];
+  // The Spending nav entry only makes sense once the Spending module is enabled.
+  const { isEnabled: spendingEnabled } = useSpendingSettings();
+  const primary = staticNavigation.primary.filter(
+    (item) => item.href !== "/spending/insights" || spendingEnabled,
+  );
   const addons = useMemo(() => dynamicItems ?? [], [dynamicItems]);
 
   useEffect(() => {

@@ -95,6 +95,7 @@
   "columns": "Columns",
   "insights": "Insights",
   "assistant": "Assistant",
+  "spending": "Spending",
   "connect": "Connect",
   "addons": "Add-ons",
   "nav": {
@@ -103,7 +104,8 @@
     "label_holdings": "View Holdings",
     "label_activities": "View Activities",
     "label_goals": "Goals",
-    "label_assistant": "AI Assistant"
+    "label_assistant": "AI Assistant",
+    "label_spending": "View Spending"
   },
   "layout": {
     "search": "Search...",
