@@ -12,7 +12,7 @@ use axum::{
     Json, Router,
 };
 use serde::Deserialize;
-use wealthfolio_core::accounts::AccountServiceTrait;
+use wealthfolio_core::accounts::{is_spending_account_type, AccountServiceTrait};
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -42,6 +42,17 @@ async fn create_account(
     let core_new = payload.into();
     let created = state.account_service.create_account(core_new).await?;
     // Domain events handle portfolio recalculation
+
+    if is_spending_account_type(&created.account_type) {
+        if let Err(e) = state
+            .spending_settings_service
+            .auto_include_account(&created.id)
+            .await
+        {
+            tracing::error!("Failed to auto-include account in spending settings: {}", e);
+        }
+    }
+
     Ok(Json(Account::from(created)))
 }
 
